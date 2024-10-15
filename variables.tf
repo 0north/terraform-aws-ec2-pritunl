@@ -220,3 +220,16 @@ variable "additional_instance_role_policy_json" {
   type        = string
   default     = null
 }
+
+variable "create_eip" {
+  description = "Whether to create a new Elastic IP to associate with the Pritunl instance"
+  type        = bool
+  default     = true
+}
+
+variable "eip_id" {
+  description = "The allocation ID of the existing Elastic IP to associate with the Pritunl instance"
+  type        = string
+  default     = null
+}
+
