@@ -49,8 +49,8 @@ resource "aws_iam_policy" "ssm_send_command_pritunl" {
     Version = "2012-10-17",
     Statement = [
       {
-        Effect   = "Allow",
-        Action   = "ssm:SendCommand",
+        Effect = "Allow",
+        Action = "ssm:SendCommand",
         Resource = [
           aws_instance.pritunl.arn,
           aws_ssm_document.restore_mongodb.arn
@@ -117,11 +117,28 @@ resource "aws_iam_role_policy_attachment" "ssm" {
 
 }
 
-
 resource "aws_eip" "pritunl" {
+  count    = var.create_eip ? 1 : 0
   instance = aws_instance.pritunl.id
 
   tags = var.tags
+}
+
+data "aws_eip" "pritunl" {
+  count = var.eip_id != null ? 1 : 0
+  id    = var.eip_id
+}
+
+resource "aws_eip_association" "pritunl" {
+  count         = var.eip_id != null ? 1 : 0
+  instance_id   = aws_instance.pritunl.id
+  allocation_id = var.eip_id
+  lifecycle {
+    precondition {
+      condition     = var.create_eip == false
+      error_message = "The eip_id cannot be specified when create_eip is true."
+    }
+  }
 }
 
 resource "aws_instance" "pritunl" {
@@ -317,9 +334,13 @@ resource "aws_route53_record" "pritunl" {
   name    = var.domain_name
   type    = "A"
   ttl     = "300"
-  records = [aws_eip.pritunl.public_ip]
-
-
+  records = [var.create_eip ? aws_eip.pritunl[0].public_ip : data.aws_eip.pritunl[0].public_ip]
+  lifecycle {
+    precondition {
+      condition     = (var.create_eip && var.eip_id == null) || (!var.create_eip && var.eip_id != null)
+      error_message = "To create the Route53 record, either create_eip must be true, or eip_id must be specified."
+    }
+  }
 }
 
 
@@ -424,7 +445,7 @@ resource "aws_ssm_document" "restore_mongodb" {
   content = jsonencode({
     schemaVersion = "2.2",
     description   = "Restore MongoDB from S3 backup",
-    mainSteps     = [
+    mainSteps = [
       {
         action = "aws:runShellScript",
         name   = "restoreBackup",
@@ -440,3 +461,4 @@ resource "aws_ssm_document" "restore_mongodb" {
     ]
   })
 }
+
