@@ -208,3 +208,9 @@ variable "eip_id" {
   type        = string
   default     = null
 }
+
+variable "cloudwatch_logs_retention_in_days" {
+  description = "Retention in days to configure for the CloudWatch log group"
+  type        = number
+  default     = 30
+}
