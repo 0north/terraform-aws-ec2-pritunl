@@ -1,6 +1,7 @@
 locals {
   ssm_path_key_pair                = "/${var.name}/pritunl_instance_private_key"
   ssm_path_default_credentials     = "/${var.name}/pritunl_default_credenstials"
+  ssm_path_license                 = "/${var.name}/pritunl_license"
   iam_role_default_name            = "${var.name}_pritunl_role"
   iam_instance_profile_defaut_name = "${var.name}_pritunl_instance_profile"
   cw_logs_default_name             = "/aws/${var.name}/pritunl_logs"
@@ -159,6 +160,9 @@ resource "aws_instance" "pritunl" {
     BACKUP_FILE                 = ""
     SSM_DOCUMENT_NAME           = aws_ssm_document.restore_mongodb.name
     ADDITIONAL_USER_DATA        = var.additional_user_data
+    ATTACH_LICENSE              = var.license != null ? "true" : "false"
+    LICENSE_PLAN                = var.license_plan
+    SSM_PATH_LICENSE            = local.ssm_path_license
   })
   iam_instance_profile = aws_iam_instance_profile.pritunl.name
 
@@ -453,4 +457,14 @@ resource "aws_ssm_document" "restore_mongodb" {
       }
     ]
   })
+}
+
+resource "aws_ssm_parameter" "license" {
+  count = var.license != null ? 1 : 0
+
+  name        = local.ssm_path_key_pair
+  description = "Stores the Pritunl license"
+  type        = "SecureString"
+  value       = sensitive(var.license)
+  tags        = var.tags
 }
