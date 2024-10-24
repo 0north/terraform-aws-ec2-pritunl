@@ -8,6 +8,9 @@ AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}"
 CW_LOGS_GROUP="${CW_LOGS_GROUP}"
 AUTO_RESTORE="${AUTO_RESTORE}"
 SSM_DOCUMENT_NAME="${SSM_DOCUMENT_NAME}"
+ATTACH_LICENSE="${ATTACH_LICENSE}"
+LICENSE_PLAN="${LICENSE_PLAN}"
+SSM_PATH_LICENSE="${SSM_PATH_LICENSE}"
 
 export AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION
 
@@ -87,6 +90,15 @@ sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -a fetch-c
 fi
 PRITUNL_DEFAULT_CREDENTIALS=$(sudo pritunl default-password | grep -E 'username:|password:' | awk '{print $1,$2}')
 aws ssm put-parameter --region $AWS_DEFAULT_REGION --name "$SSM_PATH_DEFAULT_CREDENTIAL" --type "String" --value "$PRITUNL_DEFAULT_CREDENTIALS" --type "SecureString" --overwrite
+
+# Configure license
+if [ "${ATTACH_LICENSE}" = "true" ]; then
+  LICENSE=$(aws ssm get-parameter --name $SSM_PATH_LICENSE --region $AWS_DEFAULT_REGION --with-decryption --query 'Parameter.Value' --output text | sed -e 's/license//i' -e 's/end//i' -e 's/begin//i' -e 's/[^a-zA-Z0-9]//g' | tr -d '\n')
+  sudo pritunl set app.license "$LICENSE"
+  sudo pritunl set app.license_plan "$LICENSE_PLAN"
+fi
+
 sudo systemctl start pritunl
 
 ${ADDITIONAL_USER_DATA}
+

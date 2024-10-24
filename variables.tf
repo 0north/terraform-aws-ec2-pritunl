@@ -37,8 +37,6 @@ variable "subnet_id" {
   type        = string
 }
 
-
-
 variable "monitoring" {
   description = "Whether to enable detailed monitoring for the Pritunl instance"
   type        = bool
@@ -219,4 +217,21 @@ variable "additional_instance_role_policy_json" {
   description = "Additional JSON formatted IAM policy to attach to the Pritunl EC2 instance role."
   type        = string
   default     = null
+}
+
+variable "license" {
+  description = "Pritunl license to attach to the instance."
+  type        = string
+  sensitive   = true
+  default     = null
+}
+
+variable "license_plan" {
+  description = "Pritunl plan to activate if license is specified."
+  type        = string
+  default     = null
+  validation {
+    condition     = contains(["premium", "enterprise", "enterprise-plus"], var.license_plan)
+    error_message = "Allowed values for license_plan are \"premium\", \"enterprise\", or \"enterprise-plus\"."
+  }
 }
