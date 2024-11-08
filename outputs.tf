@@ -15,7 +15,7 @@ output "instance_id" {
 
 output "eip_public_ip" {
   description = "The Elastic IP address associated with the Pritunl instance."
-  value       = aws_eip.pritunl.public_ip
+  value       = var.eip_id == null ? aws_eip.pritunl[0].public_ip : data.aws_eip.pritunl[0].public_ip
 }
 
 output "security_group_id" {
