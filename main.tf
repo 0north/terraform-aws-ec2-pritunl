@@ -311,16 +311,16 @@ resource "aws_iam_policy" "ssm_put_parameter" {
         Effect = "Allow",
         Action = ["ssm:PutParameter"]
         Resource = [
-          "arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter/${local.ssm_path_default_credentials}",
-          "arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter/${local.ssm_path_key_pair}"
+          "arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter/${trimprefix(local.ssm_path_default_credentials, "/")}",
+          "arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter/${trimprefix(local.ssm_path_key_pair, "/")}"
         ]
       },
       {
         Effect = "Deny",
         Action = ["ssm:PutParameter"],
         Resource = [
-          "arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter/${local.ssm_path_default_credentials}",
-          "arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter/${local.ssm_path_key_pair}"
+          "arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter/${trimprefix(local.ssm_path_default_credentials, "/")}",
+          "arn:aws:ssm:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:parameter/${trimprefix(local.ssm_path_key_pair, "/")}"
         ],
         Condition = {
           "StringEquals" = {
